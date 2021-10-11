@@ -1,0 +1,43 @@
+.item_button:hover .tooltip {
+  /* NEW */
+  display: block;
+}
+
+.tooltip {
+  display: none;
+  /* NEW */
+  background: #c8c8c8;
+  margin-left: 28px;
+  padding: 10px;
+  position: absolute;
+  z-index: 1000;
+  width: 200px;
+  height: 100px;
+}
+
+#item_button_holder {
+  display: grid;
+  border: 1px;
+  border-style: solid;
+  grid-template-columns: repeat(10, 1fr);
+
+  width: fit-content;
+  block-size: fit-content;
+}
+
+#inventory_container {
+  width: fit-content;
+  block-size: fit-content;
+}
+
+#pages {
+  white-space: nowrap;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  align-items: center;
+  width: 95%;
+}
+div#pages * {
+  display: inline-block;
+}

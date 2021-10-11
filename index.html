@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
+    <title>MinecraftServer2 Thingy</title>
+  </head>
+  <body>
+    <div class="container">
+      <h3 id="connection_status_text">Connection Status: Not Connected</h3>
+      <h3 id="set_counter_text">Parsing...</h3>
+      <div>Host:</div>
+      <input type="text" id="host_input" value="127.0.0.1" />
+      <br />
+      <div>Port:</div>
+      <input type="text" id="port_input" value="1300" />
+      <br />
+
+      <button id="connect_api_button">Connect to API server</button>
+      <br />
+      <div>Session Id:</div>
+      <input type="text" id="session_id_input" value="1" />
+      <br />
+      <script type="module" src="./main.js"></script>
+      <script type="module" src="./parsing.js"></script>
+    </div>
+    <br />
+    <div>Search:</div>
+
+    <input type="text" id="search_bar" />
+    <br />
+    <br />
+    <div id="inventory_container">
+      <div id="item_button_holder"></div>
+      <div id="pages">
+        <button id="first_page">&lt;&lt;</button>
+        <button id="prev_page">&lt;</button>
+        <p id="page_text">0/0</p>
+        <button id="next_page">&gt;</button>
+        <button id="last_page">&gt;&gt;</button>
+      </div>
+    </div>
+  </body>
+</html>
