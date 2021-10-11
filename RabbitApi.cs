@@ -20,6 +20,7 @@ namespace RabbitApi
         static readonly List<AdminApiSession> apiSessions = new List<AdminApiSession>();
         static AdminApiServer()
         {
+            Host = Environment.GetEnvironmentVariable("IP");
             Source = new CancellationTokenSource();
             IPAddress ipAd = IPAddress.Parse(Host);
             Listener = new TcpListener(ipAd, Port);
