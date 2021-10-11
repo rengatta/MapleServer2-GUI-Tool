@@ -55,3 +55,7 @@ ts-gen
 patches/mtime-cache.json
 
 spec/fixtures/logo.png
+
+
+# project stuff
+paths.json
