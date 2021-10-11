@@ -1,4 +1,4 @@
-# MinecraftServer2 GUI Tool
+# MapleServer2 GUI Tool
 Currently just acts as an item viewer and item spawner for usage with MapleServer2 (https://github.com/AlanMorel/MapleServer2)
 
 ## Setup Instructions:
