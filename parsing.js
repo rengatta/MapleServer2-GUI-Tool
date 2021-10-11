@@ -36,27 +36,53 @@ function ParseAll(_callback) {
   }
 }
 
-function CheckValidIconPath(iconPath, customPath) {
-  var regMatch = iconPath.match(/Image.*.png/i);
+function ParseXml(xmlFilename) {
+  fs.readFile(xmlFilename, function (err, data) {
+    parser.parseString(data, function (err, result) {
+      ParseItemnames(result);
+    });
+  });
+}
 
-  if (regMatch !== null) {
-    iconPath = regMatch[0].replace("Image", "");
+function ParseItemnames(xml) {
+  for (var item of xml.ms2.key) {
+    item = item.$;
+    if (item.id.length === 1) item.id = "0000000" + item.id;
+
+    if (item.name !== undefined) {
+      item.name = item.name.replace("(F)", "(Female)").replace("(M)", "(Male)");
+      if (item.class === "") item.class = undefined;
+
+      if (item.class !== undefined)
+        item.class = item.class.replaceAll(" ", "_");
+      if (item.feature !== undefined) {
+        item.feature = item.feature.replaceAll(" ", "_");
+      }
+
+      item.nameTokens = Tokenize(item.name);
+      item.nameTokens.add("id=" + item.id);
+      item.nameTokens.add("class=" + item.class);
+      item.nameTokens.add("feature=" + item.feature);
+
+      features.add(item.feature);
+      classes.add(item.class);
+
+      parsedItems.push(item);
+    }
   }
 
-  if (fs.existsSync(`${paths.imageFolderPath}${iconPath}`)) {
-    return iconPath;
-  }
+  set_counter_text.innerText = parsedItems.length;
+  ParseExtraItemXml();
+}
 
-  var regMatch = customPath.match(/Image.*.png/i);
-  if (regMatch !== null) {
-    customPath = regMatch[0].replace("Image", "");
-  }
+function ParseExtraItemXml() {
+  if (loadExtraXmlData && fs.existsSync("extraXmlData.json")) {
+    extraXmlData = JSON.parse(fs.readFileSync("extraXmlData.json"));
 
-  if (fs.existsSync(`${paths.imageFolderPath}${customPath}`)) {
-    return customPath;
+    DoneParsing();
+    return;
   }
-
-  return undefined;
+  GenerateExtraXmlDataJson();
 }
 
 function GenerateExtraXmlDataJson() {
@@ -102,16 +128,6 @@ function GenerateExtraXmlDataJson() {
   }
 }
 
-function ParseExtraItemXml() {
-  if (loadExtraXmlData && fs.existsSync("extraXmlData.json")) {
-    extraXmlData = JSON.parse(fs.readFileSync("extraXmlData.json"));
-
-    DoneParsing();
-    return;
-  }
-  GenerateExtraXmlDataJson();
-}
-
 function DoneParsing() {
   //check itemname.xml for item ids that aren't already in extraXmlData
   for (let item of parsedItems) {
@@ -147,45 +163,25 @@ function Tokenize(str) {
   return new Set(str.split(" "));
 }
 
-function ParseItemnames(xml) {
-  for (var item of xml.ms2.key) {
-    item = item.$;
-    if (item.id.length === 1) item.id = "0000000" + item.id;
+function CheckValidIconPath(iconPath, customPath) {
+  var regMatch = iconPath.match(/Image.*.png/i);
 
-    if (item.name !== undefined) {
-      item.name = item.name.replace("(F)", "(Female)").replace("(M)", "(Male)");
-      if (item.class === "") item.class = undefined;
-
-      if (item.class !== undefined)
-        item.class = item.class.replaceAll(" ", "_");
-      if (item.feature !== undefined) {
-        item.feature = item.feature.replaceAll(" ", "_");
-      }
-
-      item.nameTokens = Tokenize(item.name);
-      item.nameTokens.add("id=" + item.id);
-      item.nameTokens.add("class=" + item.class);
-      item.nameTokens.add("feature=" + item.feature);
-
-      features.add(item.feature);
-      classes.add(item.class);
-
-      parsedItems.push(item);
-    }
+  if (regMatch !== null) {
+    iconPath = regMatch[0].replace("Image", "");
   }
 
-  set_counter_text.innerText = parsedItems.length;
-  AfterItemParse();
-}
+  if (fs.existsSync(`${paths.imageFolderPath}${iconPath}`)) {
+    return iconPath;
+  }
 
-function AfterItemParse() {
-  ParseExtraItemXml();
-}
+  var regMatch = customPath.match(/Image.*.png/i);
+  if (regMatch !== null) {
+    customPath = regMatch[0].replace("Image", "");
+  }
 
-function ParseXml(xmlFilename) {
-  fs.readFile(xmlFilename, function (err, data) {
-    parser.parseString(data, function (err, result) {
-      ParseItemnames(result);
-    });
-  });
+  if (fs.existsSync(`${paths.imageFolderPath}${customPath}`)) {
+    return customPath;
+  }
+
+  return undefined;
 }
