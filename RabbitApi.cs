@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Sockets;
 using MapleServer2.Servers.Game;
@@ -17,7 +18,7 @@ namespace RabbitApi
         static readonly Thread ServerThread;
         static string ColorBlue(string input) => ConsoleExtensions.Pastel(input, "#00ccff");
         public static void WriteConsoleBlue(string input) => Console.WriteLine(ColorBlue("[API] " + input));
-        public static readonly Dictionary<string, GameSession> gameSessions = new Dictionary<string, GameSession>();
+        public static readonly ConcurrentDictionary<string, GameSession> gameSessions = new ConcurrentDictionary<string, GameSession>();
         static readonly List<AdminApiSession> apiSessions = new List<AdminApiSession>();
         static AdminApiServer()
         {
@@ -51,7 +52,7 @@ namespace RabbitApi
         {
             if (!gameSessions.ContainsKey(characterId.ToString()))
             {
-                gameSessions.Add(characterId.ToString(), session);
+                gameSessions.TryAdd(characterId.ToString(), session);
             }
             else
             {
@@ -201,9 +202,13 @@ namespace RabbitApi
 
         bool IsSessionValid(GameSession session)
         {
-            if (session != null && session.Player != null && session.Player.Session != null)
+            //need a better way to check session validity
+            lock (session)
             {
-                return true;
+                if (session != null && session.Player != null && session.Player.Session != null)
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -226,17 +231,26 @@ namespace RabbitApi
 
                 if (AdminApiServer.gameSessions.TryGetValue(characterId, out GameSession gameSession))
                 {
-
-                    if (!IsSessionValid(gameSession))
+                    //can probably still enter a race condition extremely rarely
+                    try
                     {
-                        AdminApiServer.WriteConsoleBlue("Session is not valid. Command not sent.");
-                        return;
+                        if (!IsSessionValid(gameSession))
+                        {
+                            AdminApiServer.WriteConsoleBlue("Session is not valid. Command not sent.");
+                            return;
+                        }
+
+                        if (!GameServer.CommandManager.HandleCommand(new MapleServer2.Commands.Core.GameCommandTrigger(args2, gameSession)))
+                        {
+                            AdminApiServer.WriteConsoleBlue($"No command was found with alias: {args2[0]}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AdminApiServer.WriteConsoleBlue("Exception when executing command.");
+                        AdminApiServer.WriteConsoleBlue(ex.ToString());
                     }
 
-                    if (!GameServer.CommandManager.HandleCommand(new MapleServer2.Commands.Core.GameCommandTrigger(args2, gameSession)))
-                    {
-                        AdminApiServer.WriteConsoleBlue($"No command was found with alias: {args2[0]}");
-                    }
                 }
                 else
                 {
