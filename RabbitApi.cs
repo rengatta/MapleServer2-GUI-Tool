@@ -48,7 +48,14 @@ namespace RabbitApi
 
         public static void AddSession(long characterId, GameSession session)
         {
-            gameSessions.Add(characterId.ToString(), session);
+            if (!gameSessions.ContainsKey(characterId.ToString()))
+            {
+                gameSessions.Add(characterId.ToString(), session);
+            }
+            else
+            {
+                gameSessions[characterId.ToString()] = session;
+            }
             WriteConsoleBlue($"GameSession started => {characterId.ToString()}.");
         }
 
