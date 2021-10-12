@@ -9,6 +9,7 @@ namespace RabbitApi
     public static class AdminApiServer
     {
         private static readonly CancellationTokenSource Source;
+
         static readonly TcpListener Listener;
         static readonly ManualResetEvent ClientConnected;
         public static readonly string Host = "127.0.0.1";
@@ -198,6 +199,15 @@ namespace RabbitApi
             ParseMessage(client_message);
         }
 
+        bool IsSessionValid(GameSession session)
+        {
+            if (session != null && session.Player != null && session.Player.Session != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private void ParseMessage(string message)
         {
             string[] args1 = message.Split("*");
@@ -216,6 +226,13 @@ namespace RabbitApi
 
                 if (AdminApiServer.gameSessions.TryGetValue(characterId, out GameSession gameSession))
                 {
+
+                    if (!IsSessionValid(gameSession))
+                    {
+                        AdminApiServer.WriteConsoleBlue("Session is not valid. Command not sent.");
+                        return;
+                    }
+
                     if (!GameServer.CommandManager.HandleCommand(new MapleServer2.Commands.Core.GameCommandTrigger(args2, gameSession)))
                     {
                         AdminApiServer.WriteConsoleBlue($"No command was found with alias: {args2[0]}");
