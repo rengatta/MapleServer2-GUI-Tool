@@ -1,11 +1,17 @@
-.item_button:hover .tooltip {
-  /* NEW */
+@import "./node_modules/typeface-roboto/index.css";
+* {
+  font-family: "Roboto", "roboto", "Courier New", "Courier", monospace;
+}
+
+.mapButton:hover .tooltip {
+  display: block;
+}
+.itemButton:hover .tooltip {
   display: block;
 }
 
 .tooltip {
   display: none;
-  /* NEW */
   background: #c8c8c8;
   margin-left: 28px;
   padding: 10px;
@@ -15,7 +21,7 @@
   height: 100px;
 }
 
-#item_button_holder {
+#itemButtonHolder {
   display: grid;
   border: 1px;
   border-style: solid;
@@ -25,7 +31,16 @@
   block-size: fit-content;
 }
 
-#inventory_container {
+#inventoryContainer {
+  width: fit-content;
+  block-size: fit-content;
+}
+
+#mapsButtonHolder {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-style: solid;
+  border: 1px;
   width: fit-content;
   block-size: fit-content;
 }
@@ -40,4 +55,8 @@
 }
 div#pages * {
   display: inline-block;
+}
+
+#mapsTab {
+  display: none;
 }

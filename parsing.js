@@ -4,27 +4,30 @@ const xml2js = require("xml2js");
 const fg = require("fast-glob");
 const path = require("path");
 
-var parser = new xml2js.Parser();
-var trie = new TrieSearch();
-var parsedItems = [];
-var extraXmlData = new Object();
-var paths;
+const parser = new xml2js.Parser();
+const trie = new TrieSearch();
+const parsedItems = [];
 
-//item descriptors
-var classes = new Set();
-var features = new Set();
-var slots = new Set();
+// eslint-disable-next-line import/no-mutable-exports
+let paths;
+// eslint-disable-next-line import/no-mutable-exports
+let extraXmlData = {};
+// item descriptors
+const classes = new Set();
+const features = new Set();
+const slots = new Set();
 
-//html elements
-var set_counter_text;
+// html elements
+let setCounterText;
 const loadExtraXmlData = true;
+// eslint-disable-next-line no-use-before-define
 export { ParseAll, trie, parsedItems, Tokenize, extraXmlData, paths };
 
-var callback;
+let callback;
 
 function ParseAll(_callback) {
   callback = _callback;
-  set_counter_text = document.getElementById("set_counter_text");
+  setCounterText = document.getElementById("setCounterText");
   if (fs.existsSync("paths.json")) {
     paths = JSON.parse(fs.readFileSync("paths.json"));
     paths.itemXmlPath = paths.itemXmlPath.replace(/\/$/, "");
@@ -37,17 +40,17 @@ function ParseAll(_callback) {
 }
 
 function ParseXml(xmlFilename) {
-  fs.readFile(xmlFilename, function (err, data) {
-    parser.parseString(data, function (err, result) {
+  fs.readFile(xmlFilename, (err, data) => {
+    parser.parseString(data, (err2, result) => {
       ParseItemnames(result);
     });
   });
 }
 
 function ParseItemnames(xml) {
-  for (var item of xml.ms2.key) {
+  for (let item of xml.ms2.key) {
     item = item.$;
-    if (item.id.length === 1) item.id = "0000000" + item.id;
+    if (item.id.length === 1) item.id = `0000000${item.id}`;
 
     if (item.name !== undefined) {
       item.name = item.name.replace("(F)", "(Female)").replace("(M)", "(Male)");
@@ -60,9 +63,9 @@ function ParseItemnames(xml) {
       }
 
       item.nameTokens = Tokenize(item.name);
-      item.nameTokens.add("id=" + item.id);
-      item.nameTokens.add("class=" + item.class);
-      item.nameTokens.add("feature=" + item.feature);
+      item.nameTokens.add(`id=${item.id}`);
+      item.nameTokens.add(`class=${item.class}`);
+      item.nameTokens.add(`feature=${item.feature}`);
 
       features.add(item.feature);
       classes.add(item.class);
@@ -71,7 +74,7 @@ function ParseItemnames(xml) {
     }
   }
 
-  set_counter_text.innerText = parsedItems.length;
+  setCounterText.innerText = parsedItems.length;
   ParseExtraItemXml();
 }
 
@@ -87,28 +90,29 @@ function ParseExtraItemXml() {
 
 function GenerateExtraXmlDataJson() {
   console.log("Generating new extraXmlData.json");
-  var filepaths = fg.sync([paths.itemXmlPath + "/*/*/*.xml"], { dot: false });
-  var itemXmlData = [];
-  for (let i = 0; i < filepaths.length; i++) {
+  const filepaths = fg.sync([`${paths.itemXmlPath}/*/*/*.xml`], { dot: false });
+  const itemXmlData = [];
+  for (let i = 0; i < filepaths.length; i += 1) {
     itemXmlData.push(fs.readFileSync(filepaths[i]));
   }
 
-  var totalParsed = 0;
+  let totalParsed = 0;
 
-  for (let i = 0; i < itemXmlData.length; i++) {
+  for (let i = 0; i < itemXmlData.length; i += 1) {
     //
-    parser.parseString(itemXmlData[i], function (err, result) {
-      var itemId = path.basename(filepaths[i], path.extname(filepaths[i]));
+    // eslint-disable-next-line no-loop-func
+    parser.parseString(itemXmlData[i], (err, result) => {
+      const itemId = path.basename(filepaths[i], path.extname(filepaths[i]));
 
       if (result === undefined) {
         console.log(err);
         return;
       }
-      var iconPath = result.ms2.environment[0].property[0].$.slotIcon;
-      var customPath = result.ms2.environment[0].property[0].$.slotIconCustom;
-      var validPath = CheckValidIconPath(iconPath, customPath);
+      const iconPath = result.ms2.environment[0].property[0].$.slotIcon;
+      const customPath = result.ms2.environment[0].property[0].$.slotIconCustom;
+      const validPath = CheckValidIconPath(iconPath, customPath);
 
-      var itemXmlInfo = new Object();
+      const itemXmlInfo = {};
       itemXmlInfo.iconPath = validPath;
       itemXmlInfo.slotName = result.ms2.environment[0].slots[0].slot[0].$.name;
 
@@ -129,10 +133,10 @@ function GenerateExtraXmlDataJson() {
 }
 
 function DoneParsing() {
-  //check itemname.xml for item ids that aren't already in extraXmlData
-  for (let item of parsedItems) {
+  // check itemname.xml for item ids that aren't already in extraXmlData
+  for (const item of parsedItems) {
     if (extraXmlData[item.id] !== undefined) {
-      item.nameTokens.add("slot=" + extraXmlData[item.id].slotName);
+      item.nameTokens.add(`slot=${extraXmlData[item.id].slotName}`);
       item.slotName = extraXmlData[item.id].slotName;
       item.missingData = false;
     } else {
@@ -142,20 +146,24 @@ function DoneParsing() {
       item.missingData = true;
     }
     slots.add(item.slotName);
-    for (let token of item.nameTokens) {
+    for (const token of item.nameTokens) {
       trie.map(token, item);
     }
   }
+  console.log("Items");
+  console.log("Slots: ");
   console.log(slots);
+  console.log("Classes: ");
   console.log(classes);
+  console.log("Features: ");
   console.log(features);
   callback();
 }
 
-function Tokenize(str) {
-  str = str
+function Tokenize(inputstr) {
+  const str = inputstr
     .toLowerCase()
-    .replaceAll(/[',()\[\]]/g, "")
+    .replaceAll(/[',()[\]]/g, "")
     .replaceAll(/[_-]/g, " ")
     .replaceAll(/  +/g, " ")
     .trim();
@@ -164,7 +172,7 @@ function Tokenize(str) {
 }
 
 function CheckValidIconPath(iconPath, customPath) {
-  var regMatch = iconPath.match(/Image.*.png/i);
+  let regMatch = iconPath.match(/Image.*.png/i);
 
   if (regMatch !== null) {
     iconPath = regMatch[0].replace("Image", "");
@@ -174,7 +182,7 @@ function CheckValidIconPath(iconPath, customPath) {
     return iconPath;
   }
 
-  var regMatch = customPath.match(/Image.*.png/i);
+  regMatch = customPath.match(/Image.*.png/i);
   if (regMatch !== null) {
     customPath = regMatch[0].replace("Image", "");
   }

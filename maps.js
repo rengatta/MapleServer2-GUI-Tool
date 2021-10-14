@@ -1,114 +1,139 @@
-import {
-  ParseAll,
-  trie,
-  parsedItems,
-  Tokenize,
-  extraXmlData,
-  paths,
-} from "./parsing.js";
+import { Tokenize } from "./parsing.js";
+import { IsApiConnected, WriteTcpMessage } from "./api.js";
 
-import { InitMapsTab } from "./maps.js";
-import { ApiInit, IsApiConnected, WriteTcpMessage } from "./api.js";
-
+const TrieSearch = require("trie-search");
+const fs = require("graceful-fs");
+const xml2js = require("xml2js");
+const intersect = require("fast_array_intersect").default;
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { clipboard } = require("electron");
 
-const intersect = require("fast_array_intersect").default;
+const parser = new xml2js.Parser();
+const trie = new TrieSearch();
+const parsedItems = [];
+let mapPath;
 
+// key = map id
+const mapsDict = {};
+const pageChange = {};
+
+export { MapsTest, InitMapsTab, SwitchToMapsTab };
+
+const features = new Set();
 const buttons = [];
 const tooltips = [];
 
 const maxButtonsPerPage = 100;
 const defaultButtonStyle =
-  "background-color: white;width: 60px; height: 60px; visibility: visible; background-position: center; background-image: url('./missing_icon.png') ";
+  "background-color: white; visibility: visible; background-position: center;";
 
+let initialized = false;
 let currentQuerySet;
 let currentQueryPage = 0;
 
-// html elements
-const pageChange = {};
 let searchBar;
 let setCounterText;
-let amountInput;
-const tabButtons = {};
-const tabs = {};
-let currentTab;
+let parsedCallback;
+let instanceInput;
 
-window.addEventListener("DOMContentLoaded", () => {
-  ApiInit();
+function InitMapsTab() {
+  if (initialized) return;
+  const mapsTab = document.getElementById("mapsTab");
 
-  GetElements();
-  SetTabButtonActions();
+  searchBar = mapsTab.querySelector("#searchBar");
+  setCounterText = mapsTab.querySelector("#setCounterText");
+  instanceInput = mapsTab.querySelector("#instanceInput");
+  pageChange.pageText = mapsTab.querySelector("#pageText");
+  pageChange.prevPage = mapsTab.querySelector("#prevPage");
+  pageChange.firstPage = mapsTab.querySelector("#firstPage");
+  pageChange.nextPage = mapsTab.querySelector("#nextPage");
+  pageChange.lastPage = mapsTab.querySelector("#lastPage");
 
-  InitButtons();
-  SetButtonClickActions();
-
-  ParseAll(() => {
+  parsedCallback = () => {
     OnSearchBarChange();
 
     searchBar.addEventListener("input", () => {
       OnSearchBarChange();
     });
-  });
-});
+    initialized = true;
+  };
 
-function GetElements() {
-  setCounterText = document.getElementById("setCounterText");
-
-  const itemsTab = document.getElementById("itemsTab");
-  searchBar = itemsTab.querySelector("#searchBar");
-  amountInput = itemsTab.querySelector("#amountInput");
-  pageChange.pageText = itemsTab.querySelector("#pageText");
-  pageChange.prevPage = itemsTab.querySelector("#prevPage");
-  pageChange.firstPage = itemsTab.querySelector("#firstPage");
-  pageChange.nextPage = itemsTab.querySelector("#nextPage");
-  pageChange.lastPage = itemsTab.querySelector("#lastPage");
-
-  tabButtons.maps = document.getElementById("mapsTabButton");
-  tabButtons.items = document.getElementById("itemsTabButton");
-  tabs.maps = document.getElementById("mapsTab");
-  tabs.items = document.getElementById("itemsTab");
+  InitButtons();
+  SetButtonClickActions();
+  GenerateParsedItems();
 }
 
-function SetTabButtonActions() {
-  currentTab = tabs.items;
-  tabButtons.maps.onclick = function () {
-    tabs.maps.style.display = "block";
-    if (currentTab !== tabs.maps) {
-      currentTab.style.display = "none";
-      InitMapsTab();
-    }
-
-    currentTab = tabs.maps;
-  };
-  tabButtons.items.onclick = function () {
-    tabs.items.style.display = "block";
-    if (currentTab !== tabs.items) {
-      currentTab.style.display = "none";
-    }
-    currentTab = tabs.items;
-  };
+function SwitchToMapsTab() {
+  if (!initialized) {
+    InitButtons();
+  }
 }
 
-function GenerateButtonIcon() {
+function GenerateButtonIcon(buttonClassName, buttonContainerName) {
   const btn = document.createElement("button");
   const tooltip = document.createElement("span");
   tooltip.className = "tooltip";
 
+  const buttonText = document.createElement("span");
+
   btn.type = "button";
-  btn.className = "itemButton";
+  btn.className = buttonClassName;
   btn.style = defaultButtonStyle;
+  btn.appendChild(buttonText);
+  btn.textChild = buttonText;
   btn.appendChild(tooltip);
+
   buttons.push(btn);
   tooltips.push(tooltip);
-  document.getElementById("itemButtonHolder").append(btn);
+  document.getElementById(buttonContainerName).append(btn);
 }
 
 function InitButtons() {
   for (let i = 0; i < maxButtonsPerPage; i += 1) {
-    GenerateButtonIcon();
+    GenerateButtonIcon("mapButton", "mapsButtonHolder");
   }
 }
+
+function ParseXml(xmlFilename, callback) {
+  fs.readFile(xmlFilename, (err, data) => {
+    parser.parseString(data, (err2, result) => {
+      callback(result);
+    });
+  });
+}
+
+function ParseMapnames(xmlResult) {
+  for (let map of xmlResult.ms2.key) {
+    map = map.$;
+    mapsDict[map.id] = map;
+    mapsDict[map.id].tokens = Tokenize(map.name);
+    mapsDict[map.id].tokens.add(`feature=${map.feature}`);
+    mapsDict[map.id].tokens.add(`id=${map.id}`);
+
+    features.add(map.feature);
+    for (const token of mapsDict[map.id].tokens) {
+      trie.map(token, map);
+    }
+    parsedItems.push(mapsDict[map.id]);
+  }
+  console.log("Maps");
+  console.log("Features:");
+  console.log(features);
+  parsedCallback();
+}
+
+function GenerateParsedItems() {
+  if (fs.existsSync("paths.json")) {
+    const paths = JSON.parse(fs.readFileSync("paths.json"));
+    mapPath = paths.mapnameXmlPath.replace(/\/$/, "");
+
+    ParseXml(mapPath, ParseMapnames);
+  } else {
+    console.log("paths.json not found");
+  }
+}
+
+function MapsTest() {}
 
 function ArraysAreEqual(a1, a2) {
   if (a1.length !== a2.length) return false;
@@ -120,8 +145,8 @@ function ArraysAreEqual(a1, a2) {
   return true;
 }
 
-function OnButtonClick(itemid) {
-  const command = `/item ${itemid} ${amountInput.value} 1`;
+function OnButtonClick(mapid) {
+  const command = `/map ${mapid} ${instanceInput.value}`;
   if (!IsApiConnected()) {
     clipboard.writeText(command, "selection");
   } else {
@@ -133,37 +158,6 @@ function OnButtonClick(itemid) {
       console.log(ex);
       IsApiConnected = false;
     }
-  }
-}
-
-function SetButton(index, item) {
-  buttons[index].onclick = function () {
-    OnButtonClick(item.id);
-  };
-  buttons[index].style.visibility = "visible";
-  const tooltipText =
-    `${item.name}\n` +
-    `id=${item.id}\n` +
-    `class=${item.class}\n` +
-    `slot=${item.slotName}\n` +
-    `feature=${item.feature}`;
-  tooltips[index].innerText = tooltipText;
-
-  if (extraXmlData[item.id] !== undefined) {
-    const { iconPath } = extraXmlData[item.id];
-
-    if (iconPath !== undefined) {
-      buttons[
-        index
-      ].style.backgroundImage = `url('${paths.imageFolderPath}${iconPath}')`;
-      return;
-    }
-  }
-  if (item.missingData) {
-    tooltips[index].innerText = `${tooltipText}\n*missing_xml_file`;
-    buttons[index].style.backgroundImage = "url('./missing_xml.png')";
-  } else {
-    buttons[index].style.backgroundImage = "url('./missing_icon.png')";
   }
 }
 
@@ -180,26 +174,6 @@ function CalculateQuerySet(tokens) {
   }
 
   return intersection;
-}
-
-function UpdateButtons(page) {
-  let currentAmount = 0;
-
-  for (
-    let i = (page - 1) * maxButtonsPerPage;
-    i < currentQuerySet.length;
-    i += 1
-  ) {
-    SetButton(currentAmount, currentQuerySet[i]);
-
-    currentAmount += 1;
-    if (currentAmount >= maxButtonsPerPage) return;
-  }
-
-  while (currentAmount < maxButtonsPerPage) {
-    buttons[currentAmount].style.visibility = "hidden";
-    currentAmount += 1;
-  }
 }
 
 function ChangePage(newpage) {
@@ -238,6 +212,37 @@ function ChangePage(newpage) {
   UpdateButtons(page);
 }
 
+function UpdateButtons(page) {
+  let currentAmount = 0;
+
+  for (
+    let i = (page - 1) * maxButtonsPerPage;
+    i < currentQuerySet.length;
+    i += 1
+  ) {
+    SetButton(currentAmount, currentQuerySet[i]);
+
+    currentAmount += 1;
+    if (currentAmount >= maxButtonsPerPage) return;
+  }
+
+  while (currentAmount < maxButtonsPerPage) {
+    buttons[currentAmount].style.visibility = "hidden";
+    currentAmount += 1;
+  }
+}
+
+function SetButton(index, map) {
+  buttons[index].onclick = function () {
+    OnButtonClick(map.id);
+  };
+  buttons[index].textChild.innerText = map.name;
+  buttons[index].style.visibility = "visible";
+  const tooltipText = `${map.name}\nid=${map.id}\nfeature=${map.feature}\n`;
+
+  tooltips[index].innerText = tooltipText;
+}
+
 let previousTokens;
 function OnSearchBarChange() {
   const tokens = Array.from(Tokenize(searchBar.value));
@@ -255,7 +260,6 @@ function OnSearchBarChange() {
   } else {
     currentQuerySet = CalculateQuerySet(tokens);
   }
-
   setCounterText.innerText = currentQuerySet.length;
 
   currentQueryPage = 1;

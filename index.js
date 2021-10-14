@@ -1,6 +1,6 @@
-const path = require("path");
-
+// eslint-disable-next-line import/no-extraneous-dependencies
 const { app, BrowserWindow } = require("electron");
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
@@ -12,17 +12,17 @@ function createWindow() {
   });
 
   win.loadFile("index.html");
-  //win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
   createWindow();
 
-  app.on("activate", function () {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on("window-all-closed", function () {
+app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });

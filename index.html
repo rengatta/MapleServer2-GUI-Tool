@@ -11,38 +11,73 @@
     <title>MinecraftServer2 Thingy</title>
   </head>
   <body>
-    <div class="container">
-      <h3 id="connection_status_text">Connection Status: Not Connected</h3>
-      <h3 id="set_counter_text">Parsing...</h3>
+    <div id="tabButtons">
+      <button id="itemsTabButton">Items</button>
+      <button id="mapsTabButton">Maps</button>
+    </div>
+
+    <div id="connectApiContainer">
+      <h3 id="connectionStatusText">Connection Status: false</h3>
+
       <div>Host:</div>
-      <input type="text" id="host_input" value="127.0.0.1" />
+      <input type="text" id="hostInput" value="127.0.0.1" />
       <br />
       <div>Port:</div>
-      <input type="text" id="port_input" value="1300" />
+      <input type="text" id="portInput" value="1300" />
       <br />
 
-      <button id="connect_api_button">Connect to API server</button>
+      <button id="connectApiButton">Connect to API server</button>
       <br />
       <div>Session Id:</div>
-      <input type="text" id="session_id_input" value="1" />
+      <input type="text" id="sessionIdInput" value="1" />
       <br />
       <script type="module" src="./main.js"></script>
       <script type="module" src="./parsing.js"></script>
+      <script type="module" src="./maps.js"></script>
     </div>
     <br />
-    <div>Search:</div>
+    <div id="itemsTab">
+      <h1>Items</h1>
+      <h3 id="setCounterText">Parsing...</h3>
+      <hr />
+      <div>Amount:</div>
+      <input type="text" id="amountInput" value="1" />
+      <br />
+      <div>Search:</div>
+      <input type="text" id="searchBar" />
+      <br />
+      <br />
+      <div id="inventoryContainer">
+        <div id="itemButtonHolder"></div>
+        <div id="pages">
+          <button id="firstPage">&lt;&lt;</button>
+          <button id="prevPage">&lt;</button>
+          <p id="pageText">0/0</p>
+          <button id="nextPage">&gt;</button>
+          <button id="lastPage">&gt;&gt;</button>
+        </div>
+      </div>
+    </div>
+    <div id="mapsTab">
+      <h1>Maps</h1>
+      <h3 id="setCounterText">Parsing...</h3>
+      <hr />
+      <div>Instance:</div>
+      <input type="text" id="instanceInput" value="1" />
+      <br />
+      <div>Search:</div>
+      <input type="text" id="searchBar" />
 
-    <input type="text" id="search_bar" />
-    <br />
-    <br />
-    <div id="inventory_container">
-      <div id="item_button_holder"></div>
-      <div id="pages">
-        <button id="first_page">&lt;&lt;</button>
-        <button id="prev_page">&lt;</button>
-        <p id="page_text">0/0</p>
-        <button id="next_page">&gt;</button>
-        <button id="last_page">&gt;&gt;</button>
+      <hr />
+      <div id="mapsContainer">
+        <div id="mapsButtonHolder"></div>
+        <div id="pages">
+          <button id="firstPage">&lt;&lt;</button>
+          <button id="prevPage">&lt;</button>
+          <p id="pageText">0/0</p>
+          <button id="nextPage">&gt;</button>
+          <button id="lastPage">&gt;&gt;</button>
+        </div>
       </div>
     </div>
   </body>

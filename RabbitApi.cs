@@ -152,6 +152,7 @@ namespace RabbitApi
             {
                 try
                 {
+
                     int length = await NetworkStream.ReadAsync(Buffer.AsMemory(0, Buffer.Length), readToken);
                     if (length <= 0)
                     {
@@ -163,7 +164,7 @@ namespace RabbitApi
 
                         continue;
                     }
-                    ParseBuffer(Buffer);
+                    ParseBuffer();
                 }
                 catch (IOException)
                 {
@@ -188,16 +189,17 @@ namespace RabbitApi
             }
         }
 
-        void ParseBuffer(byte[] buffer)
+        void ParseBuffer()
         {
             string client_message = "";
-            for (int i = 0; i < buffer.Length; i++)
+            for (int i = 0; i < Buffer.Length; i++)
             {
-                client_message += (Convert.ToChar(buffer[i]));
+                client_message += (Convert.ToChar(Buffer[i]));
             }
 
             AdminApiServer.WriteConsoleBlue($"Recieved message => {client_message} ");
             ParseMessage(client_message);
+            Array.Clear(Buffer, 0, Buffer.Length);
         }
 
         bool IsSessionValid(GameSession session)
