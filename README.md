@@ -8,9 +8,9 @@ Currently just acts as an item viewer and item spawner for usage with MapleServe
 
 1. Get Orion2 Repacker (https://github.com/angelotadeucci/Orion2-Repacker)
 2. Export Image.m2d and Xml.m2d from your favorite Minecraft client
-3. Find itemname.xml (probably in Xml/string/en/)
+3. Find itemname.xml and mapname.xml (probably in Xml/string/en/)
 4. Rename paths_example.json to paths.json and open it
-5. Replace the corresponding strings with global paths to /Xml/item, /Image and /itemname.xml
+5. Replace the corresponding strings with global paths to /Xml/item, /Image, /itemname.xml, and /mapname.xml
 6. Close the repacker tool before launching the client
 
 ### Node/Electron
@@ -35,9 +35,10 @@ Otherwise, you can mod an API into your MapleServer2 project that will put items
 1. Open a commandline interface
 2. cd to the project folder
 3. Type `npm start`
-4. Click an item to copy the corresponding item command to your clipboard if not connected to the API server
-5. Search by itemname/id or by tags
-6. List of tags is outputted to the developer console
+4. Switch to items/maps/etc tabs at the top
+5. Clicking a button copies the corresponding command to your clipboard if not connected to the API server
+6. Search by name/id or by tags
+7. List of tags is outputted to the developer console
 
 ### API Usage:
 
