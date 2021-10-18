@@ -56,7 +56,7 @@ div#pages * {
   display: inline-block;
 }
 
-#mapsTab {
+.secondaryTab {
   display: none;
 }
 

@@ -14,30 +14,33 @@
     <div id="tabButtons">
       <button id="itemsTabButton">Items</button>
       <button id="mapsTabButton">Maps</button>
+      <button id="apiTabButton">API</button>
     </div>
+    <div id="apiTab" class="secondaryTab tab">
+      <h1>API</h1>
+      <hr />
+      <div id="connectApiContainer">
+        <h3 id="connectionStatusText">Connection Status: false</h3>
 
-    <div id="connectApiContainer">
-      <h3 id="connectionStatusText">Connection Status: false</h3>
-
-      <div>Host:</div>
-      <input type="text" id="hostInput" value="127.0.0.1" />
-      <br />
-      <div>Port:</div>
-      <input type="text" id="portInput" value="1300" />
-      <br />
-      <button id="connectApiButton">Connect to API server</button>
-      <br />
-      <button id="disconnectApiButton">Disconnect from API server</button>
-      <br />
-      <div>Session Id:</div>
-      <input type="text" id="sessionIdInput" value="1" />
-      <br />
-      <script type="module" src="./main.js"></script>
-      <script type="module" src="./parsing.js"></script>
-      <script type="module" src="./maps.js"></script>
+        <div>Host:</div>
+        <input type="text" id="hostInput" value="127.0.0.1" />
+        <br />
+        <div>Port:</div>
+        <input type="text" id="portInput" value="1300" />
+        <br />
+        <button id="connectApiButton">Connect to API server</button>
+        <br />
+        <button id="disconnectApiButton">Disconnect from API server</button>
+        <br />
+        <div>Session Id:</div>
+        <input type="text" id="sessionIdInput" value="1" />
+        <br />
+        <script type="module" src="./main.js"></script>
+        <script type="module" src="./parsing.js"></script>
+        <script type="module" src="./maps.js"></script>
+      </div>
     </div>
-    <br />
-    <div id="itemsTab">
+    <div id="itemsTab" class="tab">
       <h1>Items</h1>
       <h3 id="setCounterText">Parsing...</h3>
       <hr />
@@ -61,7 +64,7 @@
         </div>
       </div>
     </div>
-    <div id="mapsTab">
+    <div id="mapsTab" class="secondaryTab tab">
       <h1>Maps</h1>
       <h3 id="setCounterText">Parsing...</h3>
       <hr />

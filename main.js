@@ -38,7 +38,7 @@ let amountInput;
 let rarityInput;
 const tabButtons = {};
 const tabs = {};
-let currentTab;
+let allTabs = [];
 
 window.addEventListener("DOMContentLoaded", () => {
   ApiInit();
@@ -73,27 +73,32 @@ function GetElements() {
 
   tabButtons.maps = document.getElementById("mapsTabButton");
   tabButtons.items = document.getElementById("itemsTabButton");
+  tabButtons.api = document.getElementById("apiTabButton");
   tabs.maps = document.getElementById("mapsTab");
   tabs.items = document.getElementById("itemsTab");
+  tabs.api = document.getElementById("apiTab");
+  allTabs = document.getElementsByClassName("tab");
+}
+
+function HideAllTabs() {
+  for (const tab of allTabs) {
+    tab.style.display = "none";
+  }
 }
 
 function SetTabButtonActions() {
-  currentTab = tabs.items;
   tabButtons.maps.onclick = function () {
+    HideAllTabs();
     tabs.maps.style.display = "block";
-    if (currentTab !== tabs.maps) {
-      currentTab.style.display = "none";
-      InitMapsTab();
-    }
-
-    currentTab = tabs.maps;
+    InitMapsTab();
   };
   tabButtons.items.onclick = function () {
+    HideAllTabs();
     tabs.items.style.display = "block";
-    if (currentTab !== tabs.items) {
-      currentTab.style.display = "none";
-    }
-    currentTab = tabs.items;
+  };
+  tabButtons.api.onclick = function () {
+    HideAllTabs();
+    tabs.api.style.display = "block";
   };
 }
 
