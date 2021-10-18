@@ -11,15 +11,16 @@ namespace RabbitApi
     {
         private static readonly CancellationTokenSource Source;
 
-        static readonly TcpListener Listener;
-        static readonly ManualResetEvent ClientConnected;
+        private static readonly TcpListener Listener;
+        private static readonly ManualResetEvent ClientConnected;
         public static readonly string Host = "127.0.0.1";
         public static readonly int Port = 1300;
-        static readonly Thread ServerThread;
-        static string ColorBlue(string input) => ConsoleExtensions.Pastel(input, "#00ccff");
+        private static readonly Thread ServerThread;
+        private static string ColorBlue(string input) => ConsoleExtensions.Pastel(input, "#00ccff");
         public static void WriteConsoleBlue(string input) => Console.WriteLine(ColorBlue("[API] " + input));
-        public static readonly ConcurrentDictionary<string, GameSession> gameSessions = new ConcurrentDictionary<string, GameSession>();
-        static readonly List<AdminApiSession> apiSessions = new List<AdminApiSession>();
+        public static readonly ConcurrentDictionary<string, GameSession> GameSessions = new ConcurrentDictionary<string, GameSession>();
+        private static readonly List<AdminApiSession> apiSessions = new List<AdminApiSession>();
+
         static AdminApiServer()
         {
             Host = Environment.GetEnvironmentVariable("IP");
@@ -31,7 +32,6 @@ namespace RabbitApi
             ClientConnected = new ManualResetEvent(false);
 
             WriteConsoleBlue($"API Server started on {Host}:{Port}.");
-
 
             ServerThread = new Thread(() =>
             {
@@ -45,25 +45,21 @@ namespace RabbitApi
                 }
             });
             ServerThread.Start();
-
         }
 
         public static void AddSession(long characterId, GameSession session)
         {
-            if (!gameSessions.ContainsKey(characterId.ToString()))
+            WriteConsoleBlue($"GameSession started => {characterId}.");
+            if (!GameSessions.ContainsKey(characterId.ToString()))
             {
-                gameSessions.TryAdd(characterId.ToString(), session);
+                GameSessions.TryAdd(characterId.ToString(), session);
+                return;
             }
-            else
-            {
-                gameSessions[characterId.ToString()] = session;
-            }
-            WriteConsoleBlue($"GameSession started => {characterId.ToString()}.");
+            GameSessions[characterId.ToString()] = session;
         }
 
         static void AcceptTcpClient(IAsyncResult result)
         {
-
             TcpClient client = Listener.EndAcceptTcpClient(result);
             WriteConsoleBlue($"Connection established with {(IPEndPoint) client.Client.RemoteEndPoint}.");
 
@@ -71,10 +67,9 @@ namespace RabbitApi
             apiSessions.Add(newSession);
 
             ClientConnected.Set();
-
         }
-
     }
+
     public class AdminApiSession
     {
         readonly Socket Socket = null!;
@@ -152,7 +147,6 @@ namespace RabbitApi
             {
                 try
                 {
-
                     int length = await NetworkStream.ReadAsync(Buffer.AsMemory(0, Buffer.Length), readToken);
                     if (length <= 0)
                     {
@@ -176,8 +170,6 @@ namespace RabbitApi
                     AdminApiServer.WriteConsoleBlue("Exception reading from socket: " + ex.ToString());
                     return;
                 }
-
-
             }
         }
 
@@ -189,7 +181,7 @@ namespace RabbitApi
             }
         }
 
-        void ParseBuffer()
+        private void ParseBuffer()
         {
             string client_message = "";
             for (int i = 0; i < Buffer.Length; i++)
@@ -202,7 +194,7 @@ namespace RabbitApi
             Array.Clear(Buffer, 0, Buffer.Length);
         }
 
-        bool IsSessionValid(GameSession session)
+        private static bool IsSessionValid(GameSession session)
         {
             //need a better way to check session validity
             lock (session)
@@ -227,39 +219,37 @@ namespace RabbitApi
             string characterId = args1[0];
             string command = args1[1];
 
-            if (command.Length > 0 && command.Substring(0, 1).Equals("/"))
+            if (command.Length == 0 || !command[..1].Equals("/"))
             {
-                string[] args2 = command[1..].Split(" ");
-
-                if (AdminApiServer.gameSessions.TryGetValue(characterId, out GameSession gameSession))
-                {
-                    //can probably still enter a race condition extremely rarely
-                    try
-                    {
-                        if (!IsSessionValid(gameSession))
-                        {
-                            AdminApiServer.WriteConsoleBlue("Session is not valid. Command not sent.");
-                            return;
-                        }
-
-                        if (!GameServer.CommandManager.HandleCommand(new MapleServer2.Commands.Core.GameCommandTrigger(args2, gameSession)))
-                        {
-                            AdminApiServer.WriteConsoleBlue($"No command was found with alias: {args2[0]}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AdminApiServer.WriteConsoleBlue("Exception when executing command.");
-                        AdminApiServer.WriteConsoleBlue(ex.ToString());
-                    }
-
-                }
-                else
-                {
-                    AdminApiServer.WriteConsoleBlue("Session not found.");
-                }
-
                 return;
+            }
+
+            string[] args2 = command[1..].Split(" ");
+
+            if (!AdminApiServer.GameSessions.TryGetValue(characterId, out GameSession gameSession))
+            {
+                AdminApiServer.WriteConsoleBlue("Session not found.");
+                return;
+            }
+
+            //can probably still enter a race condition extremely rarely
+            try
+            {
+                if (!IsSessionValid(gameSession))
+                {
+                    AdminApiServer.WriteConsoleBlue("Session is not valid. Command not sent.");
+                    return;
+                }
+
+                if (!GameServer.CommandManager.HandleCommand(new MapleServer2.Commands.Core.GameCommandTrigger(args2, gameSession)))
+                {
+                    AdminApiServer.WriteConsoleBlue($"No command was found with alias: {args2[0]}");
+                }
+            }
+            catch (Exception ex)
+            {
+                AdminApiServer.WriteConsoleBlue("Exception when executing command.");
+                AdminApiServer.WriteConsoleBlue(ex.ToString());
             }
         }
     }
