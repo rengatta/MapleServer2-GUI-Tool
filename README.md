@@ -37,8 +37,12 @@ Otherwise, you can mod an API into your MapleServer2 project that will put items
 3. Type `npm start`
 4. Switch to items/maps/etc tabs at the top
 5. Clicking a button copies the corresponding command to your clipboard if not connected to the API server
-6. Search by name/id or by tags
-7. List of tags is outputted to the developer console
+
+### Item Search:
+
+1. Can search by name/id or by tags
+2. List of tags is outputted to the developer console
+3. Any tag in the tooltip can be searched (ie. id=0000001 or class=dress)
 
 ### API Usage:
 
@@ -46,7 +50,7 @@ Otherwise, you can mod an API into your MapleServer2 project that will put items
 2. Login and join the game as any character
 3. Scroll up in the server console and find the `[API] GameSession started => [Your character ID]` line
    ![image](https://user-images.githubusercontent.com/53513566/136862154-4a867b53-4c80-4fa8-88c3-fb702e68d6eb.png)
-4. Use that in the Session Id input field in the GUI tool
+4. Swap to the API tab in the GUI tool and use that in the Session Id input field
 5. Use the same IP as the server
 6. Port is 1300 by default
 7. Click the "Connect to API server" button and you should be able to directly add items to your character now
