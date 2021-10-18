@@ -158,7 +158,7 @@ namespace RabbitApi
 
                         continue;
                     }
-                    ParseBuffer();
+                    ParseBuffer(length);
                 }
                 catch (IOException)
                 {
@@ -181,17 +181,17 @@ namespace RabbitApi
             }
         }
 
-        private void ParseBuffer()
+        private void ParseBuffer(int length)
         {
             string client_message = "";
-            for (int i = 0; i < Buffer.Length; i++)
+            for (int i = 0; i < length; i++)
             {
                 client_message += (Convert.ToChar(Buffer[i]));
             }
 
             AdminApiServer.WriteConsoleBlue($"Recieved message => {client_message} ");
             ParseMessage(client_message);
-            Array.Clear(Buffer, 0, Buffer.Length);
+            Array.Clear(Buffer, 0, length);
         }
 
         private static bool IsSessionValid(GameSession session)
