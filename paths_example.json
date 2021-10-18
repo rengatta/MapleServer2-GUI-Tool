@@ -1,6 +1,6 @@
 {
-  "itemXmlPath": "",
-  "imageFolderPath": "",
-  "itemnameXmlPath": "",
-  "mapnameXmlPath": ""
+  "itemXmlPath": "ABSOLUTE_PATH/Xml/item",
+  "imageFolderPath": "ABSOLUTE_PATH/Image",
+  "itemnameXmlPath": "ABSOLUTE_PATH/Xml/string/en/itemname.xml",
+  "mapnameXmlPath": "ABSOLUTE_PATH/Xml/string/en/mapname.xml"
 }

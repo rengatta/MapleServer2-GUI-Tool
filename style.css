@@ -39,8 +39,7 @@
 #mapsButtonHolder {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-style: solid;
-  border: 1px;
+  row-gap: 7px;
   width: fit-content;
   block-size: fit-content;
 }
@@ -59,4 +58,28 @@ div#pages * {
 
 #mapsTab {
   display: none;
+}
+
+.mapButton {
+  padding-left: 1rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 5px;
+  border: none;
+  background-color: #828080;
+  font-size: 15px;
+  color: #060606;
+}
+
+body {
+  background-color: #2d2d2d;
+  color: #dedede;
+}
+
+input {
+  background-color: #9c9c9c;
+}
+
+button {
+  background-color: #8c8b8b;
 }

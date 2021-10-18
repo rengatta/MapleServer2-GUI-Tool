@@ -24,8 +24,7 @@ const buttons = [];
 const tooltips = [];
 
 const maxButtonsPerPage = 100;
-const defaultButtonStyle =
-  "background-color: white; visibility: visible; background-position: center;";
+const defaultButtonStyle = "visibility: visible; background-position: center;";
 
 let initialized = false;
 let currentQuerySet;

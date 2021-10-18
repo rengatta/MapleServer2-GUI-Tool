@@ -20,7 +20,7 @@ const tooltips = [];
 
 const maxButtonsPerPage = 100;
 const defaultButtonStyle =
-  "background-color: white;width: 60px; height: 60px; visibility: visible; background-position: center; background-image: url('./missing_icon.png') ";
+  "width: 60px; height: 60px; visibility: visible; background-position: center; background-image: url('./missing_icon.png') ";
 
 let currentQuerySet;
 let currentQueryPage = 0;
