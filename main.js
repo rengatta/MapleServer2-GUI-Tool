@@ -8,7 +8,12 @@ import {
 } from "./parsing.js";
 
 import { InitMapsTab } from "./maps.js";
-import { ApiInit, IsApiConnected, WriteTcpMessage } from "./api.js";
+import {
+  ApiInit,
+  IsApiConnected,
+  WriteTcpMessage,
+  ForceDisconnectApi,
+} from "./api.js";
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 const { clipboard } = require("electron");
@@ -30,6 +35,7 @@ const pageChange = {};
 let searchBar;
 let setCounterText;
 let amountInput;
+let rarityInput;
 const tabButtons = {};
 const tabs = {};
 let currentTab;
@@ -58,6 +64,7 @@ function GetElements() {
   const itemsTab = document.getElementById("itemsTab");
   searchBar = itemsTab.querySelector("#searchBar");
   amountInput = itemsTab.querySelector("#amountInput");
+  rarityInput = itemsTab.querySelector("#rarityInput");
   pageChange.pageText = itemsTab.querySelector("#pageText");
   pageChange.prevPage = itemsTab.querySelector("#prevPage");
   pageChange.firstPage = itemsTab.querySelector("#firstPage");
@@ -121,17 +128,15 @@ function ArraysAreEqual(a1, a2) {
 }
 
 function OnButtonClick(itemid) {
-  const command = `/item ${itemid} ${amountInput.value} 1`;
+  const command = `/item ${itemid} ${amountInput.value} ${rarityInput.value}`;
   if (!IsApiConnected()) {
     clipboard.writeText(command, "selection");
   } else {
     try {
-      if (IsApiConnected) {
-        WriteTcpMessage(`${command}`);
-      }
+      WriteTcpMessage(`${command}`);
     } catch (ex) {
       console.log(ex);
-      IsApiConnected = false;
+      ForceDisconnectApi();
     }
   }
 }
